@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border: 1px solid #d3d3d3;
+    background-color: #f1f1f1;
+}
+</style>
+</head>
+<body onload="startGame()">
+<script>
+
+function startGame() {
+    myGameArea.start();
+drawBaseBoard();
+}
+
+var myGameArea = {
+    canvas : document.createElement("canvas"),
+    start : function() {
+        this.canvas.width = 500;
+        this.canvas.height = 400;
+        this.hexSize = 30;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+    }
+}
+
+function drawBaseBoard(){
+x_0 = 100;
+y_0 = 100;
+size = myGameArea.hexSize;
+hexes = [ ["blue","blue","blue","blue"],
+		  ["blue","white","white","white","blue"] , 
+		  ["blue","white","white","white","white","blue"] , 
+		  ["blue","white","white","white","white","white","blue"] , 
+		  ["blue","white","white","white","white","blue"] , 
+		  ["blue","white","white","white","blue"] , 
+	      ["blue","blue","blue","blue"]];
+    for (row = 0; row < hexes.length; row++) { 
+    for(col = 0; col < hexes[row].length;col++){
+    
+    x = x_0+col*size*2+(Math.abs(3-row))*size;
+    y = y_0+row*size*1.5;
+   			 new Hex(x,y,hexes[row][col]);		
+    }
+}
+
+}
+
+
+
+function Hex(x,y, color) {
+    this.x = x;
+    this.y = y; 
+    ctx = myGameArea.context;
+    size = myGameArea.hexSize
+    ctx.fillStyle = color;
+    ctx.beginPath();
+	ctx.moveTo (x,y-size);  
+	ctx.lineTo (x+size,y-size*.5);  
+	ctx.lineTo (x+size,y+size*.5);      
+	ctx.lineTo (x,y+size);   
+	ctx.lineTo (x-size,y+size*.5);  
+	ctx.lineTo (x-size,y-size*.5);   
+	ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.fill();
+    
+}
+
+</script>
+
+<p>Catan!</p>
+
+</body>
+</html>
