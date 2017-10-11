@@ -27,7 +27,6 @@ class Hex:
     
   def __str__(self):
     return str(self.ident)
-    
   
   def __repr__(self):
     return str(self.ident)
@@ -124,14 +123,19 @@ class Board:
       self.vertices[location] = [player,'settlement']
   
   def buildCity(self,player,location):
-    if(self.canBuildCity):
+    if(self.canBuildCity(player,location)):
       self.vertices[location] = [player,'city']
+      
+  def buildRoad(self,player,location):
+    if(self.canBuildRoad(player,location)):
+      self.edges[location] = player
+    return
     
   
   def getTile(self,x,y):
   #axial coords with 0,0 at center
   #pointy-top
-    print (self.tiles[y+3][x+3+min(0,-y)])
+    print (self.tiles[y+3][x+3])
     return
   
   
@@ -145,8 +149,11 @@ b.printBoard()
 print()
 b.buildSettlement('bob','ADE')
 print(b.vertices)
-b.getTile(0,-3)
+b.getTile(0,3)
 b.getTile(0,-2)
 b.getTile(1,-2)
 b.getTile(2,-2)
 b.getTile(0,0)
+b.getTile(0,-1)
+b.getTile(-2,2)
+b.getTile(1,1)
