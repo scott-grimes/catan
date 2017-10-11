@@ -42,7 +42,10 @@ class Board:
     shuffle(self.count)
     shuffle(self.ports)
     
-    self.tiles= [[0 for x in range(5)] for y in range(5)] 
+    #blank board 
+    self.tiles= [[0 for x in range(7)] for y in range(7)] 
+    
+    #capital letters represent land tiles
     i = 0
     ident = 65
     for row in [-2,-1,0,1,2]:
@@ -56,9 +59,41 @@ class Board:
         else:
           h.count = self.count[i]
         h.resource=self.resources[i]
-        self.tiles[row+2][col+2+min(0,-row)] = h
+        self.tiles[row+3][col+3+min(0,-row)] = h
         i+=1
         ident+=1
+        
+        
+    self.printBoard()
+    print()
+    
+    portLocationsInAxialCoords = [[0,-3],[2,-3],[3,-2],[3,0],[1,2],[-1,3],[-3,3],[-3,1],[-2,-1]]
+    
+    oceanLocationsInAxialCoords = [1,-3],[3,-3],[3,-1],[2,1],[0,3],[-2,3],[-3,2],[-3,0],[-1,-2]
+    
+    ident = ord('a')
+    #add our empty oceans  (lowercase letters)
+    for col,row in oceanLocationsInAxialCoords:
+      h = Hex(chr(ident))
+      self.tiles[row+3][col+3] = h
+      ident+=1
+    
+    
+    ident = 1
+    #add our ports  (numbers 1-9)
+    for col,row in portLocationsInAxialCoords:
+      h = Hex(str(ident))
+      self.tiles[row+3][col+3] = h
+      ident+=1
+      
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     self.vertices = {} #location of cities/settlements
@@ -96,7 +131,7 @@ class Board:
   def getTile(self,x,y):
   #axial coords with 0,0 at center
   #pointy-top
-    print (self.tiles[y+2][x+2+min(0,-x)])
+    print (self.tiles[y+3][x+3+min(0,-y)])
     return
   
   
@@ -107,5 +142,11 @@ class Board:
   
 b = Board()
 b.printBoard()
+print()
 b.buildSettlement('bob','ADE')
 print(b.vertices)
+b.getTile(0,-3)
+b.getTile(0,-2)
+b.getTile(1,-2)
+b.getTile(2,-2)
+b.getTile(0,0)
