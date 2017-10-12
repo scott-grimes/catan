@@ -5,17 +5,18 @@
 <style>
 canvas {
     border: 1px solid #d3d3d3;
-    background-color: #f1f1f1;
+    background-color: HoneyDew;
 }
 </style>
 </head>
 <body onload="startGame()">
 <script>
-var tileColor = {'ocean':"HoneyDew", 'pasture': "white", 'field' : "white",'mountains': "white",'hills': "white",'desert':"white",'forest':"white",'port':"HoneyDew"};
+var tileColor = {"ocean":"HoneyDew", "pasture": "white", "field" : "Khaki","mountains": "grey","hills": "LightSalmon","desert":"yellow","forest":"OliveDrab","port":"HoneyDew"};
+
+var board = Board();
 
 function startGame() {
     myGameArea.start();
-    var board = new Board();
     drawBaseBoard();
 }
 var myGameArea = {
@@ -23,7 +24,7 @@ var myGameArea = {
     start : function() {
         this.canvas.width = 500;
         this.canvas.height = 400;
-        this.hexSize = 30;
+        this.hexSize = 36;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     }
@@ -31,23 +32,25 @@ var myGameArea = {
 
 
 function drawBaseBoard(){
-b = new Board();
-    for(var i = 0;i<b.tiles.length;i+=1){
-    	for(var j = 0;j<b.tiles[i].length;j+=1){
-    	if(b.tiles[i][j] != null){
-   			 DrawHex(b.tiles[i][j]);		
+b = board;
+console.log(b);
+    for(var i = 0;i<b.length;i+=1){
+    	for(var j = 0;j<b[i].length;j+=1){
+    	if(b[i][j] != null){
+   			 DrawHex(b[i][j]);		
              }
              }
     
 }
 }
 
-function Hex(id,x,y,type){
+function Hex(id,x,y,type,tileVal){
 
     this.id = id;
     this.x = x;
     this.y = y;
     this.type = type;
+    this.tileVal = tileVal;
     
 }
 
@@ -55,15 +58,20 @@ function DrawHex(hex) {
     //center of gameboard at x_0, y_0
 	x_0 = 250;
 	y_0 = 200;
-    size = 30;
+    size = myGameArea.hexSize;
     //x_a,y_a are the axial coordinates of the hex
     x_a = hex.x
     y_a = hex.y
     
     //x,y are pixel coords of the center of the hexagon
     x = x_0+x_a*size*2-size*(Math.abs(y_a));
+    if(y_a>0){
+    	x = x_0+x_a*size*2+size*(Math.abs(y_a));
+    }
     y = y_0+y_a*size*1.5;
+    
     ctx = myGameArea.context;
+    if(hex.type!="ocean" && hex.type!="port"){
     size = myGameArea.hexSize
     ctx.beginPath();
 	ctx.moveTo (x,y-size);  
@@ -76,43 +84,61 @@ function DrawHex(hex) {
     ctx.stroke();
     ctx.fillStyle=tileColor[hex.type];
     ctx.fill();
+    }
+    if(hex.type!="ocean"){
     ctx.font="20px Georgia";
     ctx.fillStyle="black";
-    ctx.fillText(String(hex.id),x,y);
+    
+    if(hex.type=="port"){
+    ctx.fillText("P",x-6,y+5);
+    
+    }else{
+    
+    ctx.fillText(String(hex.tileVal),x-5,y+5);
+    }
+    }
     
 }
 
 function Board(){
-  this.resources = ['field','field','field','field','forest','forest','forest','forest','pasture','pasture','pasture','pasture','mountains','mountains','mountains','hills','hills','hills','desert']
- this.ports = ['ore','wheat','wood','wool','brick','generic','generic','generic','generic']
-  this.count = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
+  resources = ["field","field","field","field","forest","forest","forest","forest","pasture","pasture","pasture","pasture","mountains","mountains","mountains","hills","hills","hills","desert"]
+ ports = ["ore","wheat","wood","wool","brick","generic","generic","generic","generic"]
+  tileCount = [2,3,3,4,4,5,5,6,6,8,8,9,9,10,10,11,11,12]
+  
+  shuffle(resources);
+  shuffle(ports);
+  shuffle(tileCount);
 
-this.tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null]];
+tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null]];
 
 
 //places land tiles randomly into our game board. capital letters represent land tiles
     i = 0;
+    countIndex = 0;
     ident = 65;
     for(var row = -2;row<=2;row+=1){
       count = -Math.abs(row)+5;
-      start = Math.abs(row)-2;
+      start = -row-2;
+      if(row>0){
+        start = -2;
+      }
       for(var col = start;col<start+count;col+=1){
         
         tileVal = 0;
-        if(this.resources[i-1]=='desert'){
+        if(resources[i]=='desert'){
           tileVal=7;
-          i-=1
           }
         else{
-          tileVal = this.count[i]
+          tileVal = tileCount[countIndex];
+          countIndex+=1;
           }
         id = String.fromCharCode(ident);
-        h = new Hex(id,col,row,this.resources[i]);
+        h = new Hex(id,col,row,resources[i],tileVal);
         
         
         hexRow = row+3;
-        hexCol = col+3+Math.min(0,-row);
-        this.tiles[hexRow][hexCol] = h;
+        hexCol = col+3+Math.min(0,Math.abs(row));
+        tiles[hexRow][hexCol] = h;
         i+=1;
         ident+=1;
      }
@@ -130,8 +156,10 @@ this.tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,nul
     for(var i = 0;i<9;i+=1){
     x = oceanLocationsInAxialCoords[i][0];
     y = oceanLocationsInAxialCoords[i][1];
-      h = new Hex(String.fromCharCode(ident),x,y,'ocean');
-      this.tiles[y+3][x+3] = h;
+      h = new Hex(String.fromCharCode(ident),x,y,'ocean',0);
+      hexRow = y+3;
+      hexCol = x+3+Math.min(0,Math.abs(y));
+      tiles[hexRow][hexCol] = h;
       ident+=1;
     }
     
@@ -140,17 +168,36 @@ this.tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,nul
     for(var i = 0;i<9;i+=1){
     x = portLocationsInAxialCoords[i][0];
     y = portLocationsInAxialCoords[i][1];
-      h = new Hex(ident.toString(),x,y,'port');
-      this.tiles[y+3][x+3] = h;
+      h = new Hex(ident.toString(),x,y,'port',0);
+      h.port = ports[i];
+      hexRow = y+3;
+      hexCol = x+3+Math.min(0,Math.abs(y));
+      tiles[hexRow][hexCol] = h;
       ident+=1;
-      console.log(x,y);
     }
     
-
+return tiles;
 }
 
 
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
 
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
 
 </script>
 
