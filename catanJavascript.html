@@ -15,6 +15,10 @@ var tileColor = {"ocean":"HoneyDew", "pasture": "white", "field" : "Khaki","moun
 
 var board = Board();
 
+//array of objects representing the areas a road could be built or a settlement could be built. These are the clickable boundries
+var edgeBoundaries = [];
+var verticesBoundaries = [];
+
 function startGame() {
     myGameArea.start();
     drawBaseBoard();
@@ -27,13 +31,16 @@ var myGameArea = {
         this.hexSize = 36;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        
+        //on update do something
+    },clear : function(){
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
 
 
 function drawBaseBoard(){
 b = board;
-console.log(b);
     for(var i = 0;i<b.length;i+=1){
     	for(var j = 0;j<b[i].length;j+=1){
     	if(b[i][j] != null){
@@ -63,23 +70,27 @@ function DrawHex(hex) {
     x_a = hex.x
     y_a = hex.y
     
+    /*
+    function hex_to_pixel(hex):
+    x = size * sqrt(3) * (hex.q + hex.r/2)
+    y = size * 3/2 * hex.r
+    return Point(x, y)
+    */
+    
     //x,y are pixel coords of the center of the hexagon
-    x = x_0+x_a*size*2-size*(Math.abs(y_a));
-    if(y_a>0){
-    	x = x_0+x_a*size*2+size*(Math.abs(y_a));
-    }
+    x = x_0+size*(x_a+y_a/2)*Math.sqrt(3);
     y = y_0+y_a*size*1.5;
     
     ctx = myGameArea.context;
     if(hex.type!="ocean" && hex.type!="port"){
-    size = myGameArea.hexSize
     ctx.beginPath();
+    size = size*.8;
 	ctx.moveTo (x,y-size);  
-	ctx.lineTo (x+size,y-size*.5);  
-	ctx.lineTo (x+size,y+size*.5);      
+	ctx.lineTo (x+size*Math.sqrt(3)/2,y-size*.5);  
+	ctx.lineTo (x+size*Math.sqrt(3)/2,y+size*.5);      
 	ctx.lineTo (x,y+size);   
-	ctx.lineTo (x-size,y+size*.5);  
-	ctx.lineTo (x-size,y-size*.5);   
+	ctx.lineTo (x-size*Math.sqrt(3)/2,y+size*.5);  
+	ctx.lineTo (x-size*Math.sqrt(3)/2,y-size*.5);   
 	ctx.closePath();
     ctx.stroke();
     ctx.fillStyle=tileColor[hex.type];
@@ -108,7 +119,7 @@ function Board(){
   shuffle(resources);
   shuffle(ports);
   shuffle(tileCount);
-
+  
 tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null]];
 
 
@@ -134,11 +145,8 @@ tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,nul
           }
         id = String.fromCharCode(ident);
         h = new Hex(id,col,row,resources[i],tileVal);
-        
-        
-        hexRow = row+3;
-        hexCol = col+3+Math.min(0,Math.abs(row));
-        tiles[hexRow][hexCol] = h;
+        [x,y] = axialToMatrix(col,row);
+        tiles[y][x] = h;
         i+=1;
         ident+=1;
      }
@@ -147,32 +155,31 @@ tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,nul
     
     
     
-    oceanLocationsInAxialCoords = [[1,-3],[3,-3],[3,-1],[2,1],[0,3],[-2,3],[-3,2],[-3,0],[-1,-2]];
+    oceans = [[1,-3],[3,-3],[3,-1],[2,1],[0,3],[-2,3],[-3,2],[-3,0],[-1,-2]];
     
-    portLocationsInAxialCoords = [[0,-3],[2,-3],[3,-2],[3,0],[1,2],[-1,3],[-3,3],[-3,1],[-2,-1]];
+    ports = [[0,-3],[2,-3],[3,-2],[3,0],[1,2],[-1,3],[-3,3],[-3,1],[-2,-1]];
     
     ident = 97; // lowercase a
     //add our empty oceans  (lowercase letters)
     for(var i = 0;i<9;i+=1){
-    x = oceanLocationsInAxialCoords[i][0];
-    y = oceanLocationsInAxialCoords[i][1];
-      h = new Hex(String.fromCharCode(ident),x,y,'ocean',0);
-      hexRow = y+3;
-      hexCol = x+3+Math.min(0,Math.abs(y));
-      tiles[hexRow][hexCol] = h;
+    xa = oceans[i][0];
+    ya = oceans[i][1];
+      h = new Hex(String.fromCharCode(ident),xa,ya,'ocean',0);
+        [x,y] = axialToMatrix(xa,ya);
+       tiles[y][x] = h;
+      
       ident+=1;
     }
     
     ident = 1; // number as a string
     //add our empty oceans  (lowercase letters)
     for(var i = 0;i<9;i+=1){
-    x = portLocationsInAxialCoords[i][0];
-    y = portLocationsInAxialCoords[i][1];
-      h = new Hex(ident.toString(),x,y,'port',0);
+    xa = ports[i][0];
+    ya = ports[i][1];
+      h = new Hex(ident.toString(),xa,ya,'port',0);
       h.port = ports[i];
-      hexRow = y+3;
-      hexCol = x+3+Math.min(0,Math.abs(y));
-      tiles[hexRow][hexCol] = h;
+      [x,y] = axialToMatrix(xa,ya);
+      tiles[y][x] = h;
       ident+=1;
     }
     
@@ -198,6 +205,29 @@ function shuffle(array) {
 
   return array;
 }
+
+//given axial coordinates, returns the matrix row/column containing our hexagon
+function axialToMatrix(ax,ay){
+ y = ay+3;
+ x = ax+3+Math.min(0,Math.abs(ay));
+return [x,y];
+}
+
+//given pixel coordinates x,y, returns the axial coordinates of the hexagon. returns null if you did not click on a valid hexagon
+function pixelToHex(x,y){
+	size = myGameArea.hexSize;
+	xa = (x * Math.sqrt(3)/3 - y / 3) / size;
+    ya = y * 2/3 / size;
+    distance = (abs(xa) + abs(xa + ya)+ abs(ya)) / 2
+    if(distance<=2){
+    
+return [xa,ya];
+}
+return null;
+}
+
+
+
 
 </script>
 
