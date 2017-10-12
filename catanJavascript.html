@@ -12,12 +12,11 @@ canvas {
 <body onload="startGame()">
 <script>
 var tileColor = {"ocean":"HoneyDew", "pasture": "white", "field" : "Khaki","mountains": "grey","hills": "LightSalmon","desert":"yellow","forest":"OliveDrab","port":"HoneyDew"};
-
 var board = Board();
-
 //array of objects representing the areas a road could be built or a settlement could be built. These are the clickable boundries
 var edgeBoundaries = [];
 var verticesBoundaries = [];
+var hexList = {};
 
 function startGame() {
     myGameArea.start();
@@ -37,8 +36,6 @@ var myGameArea = {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
-
-
 function drawBaseBoard(){
 b = board;
     for(var i = 0;i<b.length;i+=1){
@@ -49,10 +46,12 @@ b = board;
              }
     
 }
+
+
+drawMassThingy();
+
 }
-
 function Hex(id,x,y,type,tileVal){
-
     this.id = id;
     this.x = x;
     this.y = y;
@@ -60,7 +59,6 @@ function Hex(id,x,y,type,tileVal){
     this.tileVal = tileVal;
     
 }
-
 function DrawHex(hex) {
     //center of gameboard at x_0, y_0
 	x_0 = 250;
@@ -69,13 +67,6 @@ function DrawHex(hex) {
     //x_a,y_a are the axial coordinates of the hex
     x_a = hex.x
     y_a = hex.y
-    
-    /*
-    function hex_to_pixel(hex):
-    x = size * sqrt(3) * (hex.q + hex.r/2)
-    y = size * 3/2 * hex.r
-    return Point(x, y)
-    */
     
     //x,y are pixel coords of the center of the hexagon
     x = x_0+size*(x_a+y_a/2)*Math.sqrt(3);
@@ -105,12 +96,11 @@ function DrawHex(hex) {
     
     }else{
     
-    ctx.fillText(String(hex.tileVal),x-5,y+5);
+    ctx.fillText(String(hex.id),x-5,y+5);
     }
     }
     
 }
-
 function Board(){
   resources = ["field","field","field","field","forest","forest","forest","forest","pasture","pasture","pasture","pasture","mountains","mountains","mountains","hills","hills","hills","desert"]
  ports = ["ore","wheat","wood","wool","brick","generic","generic","generic","generic"]
@@ -121,8 +111,6 @@ function Board(){
   shuffle(tileCount);
   
 tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null],[null,null,null,null,null,null,null]];
-
-
 //places land tiles randomly into our game board. capital letters represent land tiles
     i = 0;
     countIndex = 0;
@@ -147,6 +135,7 @@ tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,nul
         h = new Hex(id,col,row,resources[i],tileVal);
         [x,y] = axialToMatrix(col,row);
         tiles[y][x] = h;
+        //hexList[id] = [x,y];
         i+=1;
         ident+=1;
      }
@@ -185,34 +174,26 @@ tiles = [[null,null,null,null,null,null,null],[null,null,null,null,null,null,nul
     
 return tiles;
 }
-
-
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
-
   // While there remain elements to shuffle...
   while (0 !== currentIndex) {
-
     // Pick a remaining element...
     randomIndex = Math.floor(Math.random() * currentIndex);
     currentIndex -= 1;
-
     // And swap it with the current element.
     temporaryValue = array[currentIndex];
     array[currentIndex] = array[randomIndex];
     array[randomIndex] = temporaryValue;
   }
-
   return array;
 }
-
 //given axial coordinates, returns the matrix row/column containing our hexagon
 function axialToMatrix(ax,ay){
  y = ay+3;
  x = ax+3+Math.min(0,Math.abs(ay));
 return [x,y];
 }
-
 //given pixel coordinates x,y, returns the axial coordinates of the hexagon. returns null if you did not click on a valid hexagon
 function pixelToHex(x,y){
 	size = myGameArea.hexSize;
@@ -227,7 +208,85 @@ return null;
 }
 
 
+function drawLine(x1, y1, x2, y2, lineWidth, color, ctx) {
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+        }
+        
+ //given a hex object, return the pixels at the center of the hexagon      
+function hexToPixel(hex){
+//x_a,y_a are the axial coordinates of the hex
+    x_a = hex.x
+    y_a = hex.y
+    
+    //x,y are pixel coords of the center of the hexagon
+    x = x_0+size*(x_a+y_a/2)*Math.sqrt(3);
+    y = y_0+y_a*size*1.5;
+    return [x,y]
+}
+        
+//returns the two coordinate pairs representing the line on the edge between the two hexs given
+function roadBoundry(hexID1, hexID2){
+//vector from hex 1 towards hex2
+hex1 = findHex(hexID1);
+hex2 = findHex(hexID2);
+[xa1,ya1] = hexToPixel(hex1);
+[xa2,ya2] = hexToPixel(hex2);
 
+
+dx = (xa2-xa1);
+dy = (ya2-ya1);
+dist = Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2));
+
+dx = dx/dist;
+dy = dy/dist;
+size = myGameArea.hexSize*.9
+
+angle = 20;
+c = Math.cos(angle*Math.PI/180);
+s = Math.sin(angle*Math.PI/180);
+
+x1 = xa1+size*(dx*c-s*dy)
+y1 = ya1+size*(dx*s+c*dy);
+
+angle = -angle;
+c = Math.cos(angle*Math.PI/180);
+s = Math.sin(angle*Math.PI/180);
+
+x2 = xa1+size*(dx*c-s*dy)
+y2 = ya1+size*(dx*s+c*dy);
+
+return [x1,y1,x2,y2];
+}
+//returns the hex object given it's ID
+function findHex(id){
+for(i = 0;i<board.length;i+=1){
+	for(j = 0;j<board[i].length;j+=1){
+    	if(board[i][j]!= null && board[i][j].id==id){
+            
+        	return board[i][j];
+        }
+    }
+}
+return null;
+}
+
+function drawMassThingy(){
+
+pairs = [["E","A"],["E","B"],["E","F"],["E","J"],["E","I"],["E","D"]];
+
+for(i = 0;i<pairs.length;i+=1){
+
+bounds = roadBoundry(i[0],i[1]);
+drawLine(bounds[0],bounds[1],bounds[2],bounds[3],8,"black",myGameArea.context);
+}
+
+}
 
 </script>
 
