@@ -45,7 +45,6 @@ b = board;
              }
     
 }
-drawMassThingy();
 }
 function Hex(id,x,y,type,tileVal){
     this.id = id;
@@ -278,18 +277,45 @@ answer.push(board[y][x].id);
 return answer;
 }
 
-
-function drawMassThingy(){
-var center = "S";
-var partners = neighbors(center); 
-for(var z = 0;z<partners.length;z+=1){
-var bounds = roadBoundry(center,partners[z]);
+//draws a road on the edge between the two tiles given
+function drawRoad(hexIDa,hexIDb){
+var bounds = roadBoundry(hexIDa,hexIDb);
 drawLine(bounds[0],bounds[1],bounds[2],bounds[3],8,"black",myGameArea.context);
-
 }
 
 
 
+//returns the coordinates of vertex between the three given hexagons
+function vertexBetween(hexIDa, hexIDb, hexIDc){
+var ids = [hexIDa,hexIDb,hexIDc];
+ids.sort();
+[xa,ya] = hexToPixel(findHex(ids[0]));
+[x1,y1] = hexToPixel(findHex(ids[1]));
+[x2,y2] = hexToPixel(findHex(ids[2]));
+var mx = (x1+x2)/2;
+var my = (y1+y2)/2;
+var dx = (mx-xa);
+var dy = (my-ya);
+var dist = Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2));
+dx = dx/dist;
+dy = dy/dist;
+var size = myGameArea.hexSize;
+return [xa+dx*size,ya+dy*size];
+}
+
+function drawSettlement(hexIDa,hexIDb,hexIDc){
+[x,y] = vertexBetween(hexIDa,hexIDb,hexIDc);
+var ctx = myGameArea.context;
+ctx.beginPath();
+ctx.arc(x,y,10,0,2*Math.PI);
+ctx.stroke();
+}
+function drawCity(hexIDa,hexIDb,hexIDc){
+[x,y] = vertexBetween(hexIDa,hexIDb,hexIDc);
+var ctx = myGameArea.context;
+ctx.beginPath();
+ctx.arc(x,y,10,0,2*Math.PI);
+ctx.fill();
 }
 </script>
 
