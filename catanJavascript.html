@@ -317,6 +317,47 @@ ctx.beginPath();
 ctx.arc(x,y,10,0,2*Math.PI);
 ctx.fill();
 }
+
+myGameArea.canvas.addEventListener("mousedown", myMouseDown);
+
+myGameArea.canvas.addEventListener("mousemove", myMouseMove);
+
+function myMouseDown(){
+writeMessage(myGameArea.canvas, "CLICKED!");
+
+function writeMessage(canvas, message) {
+        var context = canvas.getContext('2d');
+        context.clearRect(0, 0, 100, 30);
+        context.font = '18pt Calibri';
+        context.fillStyle = 'black';
+        context.fillText(message, 10, 25);
+      }
+
+}
+
+function getMousePos(canvas, evt) {
+        var rect = canvas.getBoundingClientRect();
+        return {
+          x: evt.clientX - rect.left,
+          y: evt.clientY - rect.top
+        };
+      }
+
+function myMouseMove(evt){
+var mousePos = getMousePos(myGameArea.canvas, evt);
+var x = mousePos.x;
+var y = mousePos.y;
+
+writeMessage(myGameArea.canvas, x+","+y);
+
+function writeMessage(canvas, message) {
+        var context = canvas.getContext('2d');
+        context.clearRect(0, 0, 100, 30);
+        context.font = '18pt Calibri';
+        context.fillStyle = 'black';
+        context.fillText(message, 10, 25);
+      }
+}
 </script>
 
 <p>Catan!</p>
