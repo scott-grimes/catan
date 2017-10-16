@@ -37,6 +37,7 @@ var myGameArea = {
 }
 function drawBaseBoard(){
 b = board;
+myGameArea.clear()
     for(var i = 0;i<b.length;i+=1){
     	for(var j = 0;j<b[i].length;j+=1){
     	if(b[i][j] != null){
@@ -191,17 +192,36 @@ return [x,y];
 }
 //given pixel coordinates x,y, returns the axial coordinates of the hexagon. returns null if you did not click on a valid hexagon
 function pixelToHex(x,y){
-	var x_0 = 3*myGameArea.hexSize;
+	var x_0 = 4*myGameArea.hexSize;
 	var y_0 = myGameArea.canvas.height/2;
 	var size = myGameArea.hexSize;
     var xc = x-x_0;
     var yc = y-y_0;
 	var xa = (xc * Math.sqrt(3)/3 - y / 3) / size;
     var ya = yc * 2/3 / size;
-    if(xa>2 || xa<-2){ xa = 2*xa/Math.abs(xa); }
-    if(ya>2 || ya<-2){ ya = 2*ya/Math.abs(ya); }
     
-return [Math.round(xa),Math.round(ya)];
+    
+    var xf = xa;
+    var zf = ya;
+    var yf = -xf-zf;
+    
+    var rx = Math.round(xf);
+    var ry = Math.round(yf);
+    var rz = Math.round(zf);
+
+    var x_diff = Math.abs(rx - xf);
+    var y_diff = Math.abs(ry - yf);
+    var z_diff = Math.abs(rz - zf);
+
+    if (x_diff > y_diff && x_diff > z_diff){
+        rx = -ry-rz; }
+    else if(y_diff > z_diff){
+        ry = -rx-rz;}
+    else{
+        rz = -rx-ry;}
+    
+    
+return [rx,rz];
 }
 function drawLine(x1, y1, x2, y2, lineWidth, color, ctx) {
             ctx.fillStyle = color;
@@ -329,18 +349,11 @@ ctx.fill();
 myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
 function myMouseDown(evt){
-
+/*
 var mousePos = getMousePos(myGameArea.canvas,evt);
 [xa,ya] = pixelToHex(mousePos.x,mousePos.y);
-var message = xa+","+ya+": "+hexFromAx(xa,ya).id;
-writeMessage(myGameArea.canvas, message);
-function writeMessage(canvas, message) {
-        var context = canvas.getContext('2d');
-        context.clearRect(0, 0, 100, 30);
-        context.font = '18pt Calibri';
-        context.fillStyle = 'black';
-        context.fillText(message, 10, 25);
-      }
+highlightHex(hexFromAx(xa,ya));
+*/
 }
 function getMousePos(canvas, evt) {
         var rect = canvas.getBoundingClientRect();
@@ -350,10 +363,12 @@ function getMousePos(canvas, evt) {
         };
       }
 function myMouseMove(evt){
-var mousePos = getMousePos(myGameArea.canvas, evt);
-var x = mousePos.x;
-var y = mousePos.y;
-writeMessage(myGameArea.canvas, x+","+y);
+
+var mousePos = getMousePos(myGameArea.canvas,evt);
+[xa,ya] = pixelToHex(mousePos.x,mousePos.y);
+var nearestHex = 
+highlightHex(hexFromAx(xa,ya));
+/*
 function writeMessage(canvas, message) {
         var context = canvas.getContext('2d');
         context.clearRect(0, 0, 100, 30);
@@ -361,7 +376,58 @@ function writeMessage(canvas, message) {
         context.fillStyle = 'black';
         context.fillText(message, 10, 25);
       }
+*/
 }
+
+
+//returns the id of the city/settlement if the pixel location is overlapping a city or settlement, null if otherwise
+function overCitySettlement(){
+
+}
+
+//returns the id of the road if the pixel location is overlapping a road
+//returns null otherwise
+function overRoad(){
+
+}
+
+function highlightRoad(){
+
+}
+
+
+function highlightHex(hex) {
+drawBaseBoard();
+    //center of gameboard at x_0, y_0
+	x_0 = myGameArea.canvas.width/2;
+	y_0 = myGameArea.canvas.height/2;
+    size = myGameArea.hexSize;
+    //x_a,y_a are the axial coordinates of the hex
+    x_a = hex.x
+    y_a = hex.y
+    
+    //x,y are pixel coords of the center of the hexagon
+    x = x_0+size*(x_a+y_a/2)*Math.sqrt(3);
+    y = y_0+y_a*size*1.5;
+    
+    ctx = myGameArea.context;
+    
+    ctx.beginPath();
+    size = size*.8;
+	ctx.moveTo (x,y-size);  
+	ctx.lineTo (x+size*Math.sqrt(3)/2,y-size*.5);  
+	ctx.lineTo (x+size*Math.sqrt(3)/2,y+size*.5);      
+	ctx.lineTo (x,y+size);   
+	ctx.lineTo (x-size*Math.sqrt(3)/2,y+size*.5);  
+	ctx.lineTo (x-size*Math.sqrt(3)/2,y-size*.5);   
+	ctx.closePath();
+    ctx.stroke();
+    ctx.fillStyle="black";
+    ctx.fill();
+   
+    
+}
+
 </script>
 
 <p>Catan!</p>
