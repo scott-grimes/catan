@@ -25,6 +25,8 @@ var myGameArea = {
         this.hexSize = 36;
         this.context = this.canvas.getContext("2d");
         this.hex = Board();
+        this.roads = {};
+        this.vertices = {};
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         
         //on update do something
@@ -246,8 +248,18 @@ var size = myGameArea.hexSize;
 //returns the two coordinate pairs representing the line on the edge between the two hexs given
 function roadBoundry(hex1, hex2){
 //vector from hex 1 towards hex2
-[xa1,ya1] = hexToPixel(hex1);
-[xa2,ya2] = hexToPixel(hex2);
+var top, bottom;
+if(hex1.id>hex2.id){
+top = hex1;
+bottom = hex2;
+}
+else{
+top = hex2;
+bottom = hex1;
+}
+
+[xa1,ya1] = hexToPixel(top);
+[xa2,ya2] = hexToPixel(bottom);
 var dx = (xa2-xa1);
 var dy = (ya2-ya1);
 var dist = Math.sqrt(Math.pow(dx,2)+Math.pow(dy,2));
@@ -336,9 +348,28 @@ myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
 
 function myMouseDown(evt){
+drawBoard();
+var r = overRoad(evt);
+console.log(r)
+if(r!=null){
+drawRoad(r[0],r[1]);
+}
+else{
+var h = overHex(evt)
+if(h!=null){
 var cityLoc = overCitySettlement(evt);
+console.log(cityLoc);
 if(cityLoc!=null){
-var city = cityFromPixel(cityLoc[0],cityLoc[1]);
+	var ctx = myGameArea.context;
+ctx.beginPath();
+ctx.fillStyle = "black";
+ctx.arc(cityLoc[0],cityLoc[1],10,0,2*Math.PI);
+ctx.fill();
+}
+else{
+highlightHex(h);
+}
+}
 }
 }
 function getMousePos(canvas, evt) {
@@ -359,11 +390,7 @@ var h = overHex(evt)
 if(h!=null){
 var cityLoc = overCitySettlement(evt);
 if(cityLoc!=null){
-	var ctx = myGameArea.context;
-ctx.beginPath();
-ctx.fillStyle = "black";
-ctx.arc(cityLoc[0],cityLoc[1],10,0,2*Math.PI);
-ctx.fill();
+	drawCity(cityLoc);
 }
 else{
 highlightHex(h);
@@ -491,7 +518,7 @@ var CIRLCERAD = 10;
     
     var dist = Math.sqrt(Math.pow(mousePos.x-verts[i][0],2)+Math.pow( mousePos.y-verts[i][1],2));
             if (dist<CIRLCERAD) {
-             return [ verts[i][0] , verts[i][1] ] ;
+             return cityFromPixel(verts[i][0] , verts[i][1] );
 }
 }
 return null;
@@ -503,7 +530,7 @@ var h = pixelToHex(x,y);
 if(h==null){ return null; }
 
 //gets a list of the neighbors
-var neigh = neighbors(h.id);
+var neigh = neighbors(h);
 //distance the city is from all the neighbors
 var dists = {};
 for(var i = 0;i<neigh.length;i+=1){
