@@ -355,13 +355,9 @@ myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
 function myMouseDown(evt){
 var cityLoc = overCitySettlement(evt);
-console.log(cityLoc);
 if(cityLoc!=null){
-	var ctx = myGameArea.context;
-ctx.beginPath();
-ctx.fillStyle = "black";
-ctx.arc(cityLoc[0],cityLoc[1],10,0,2*Math.PI);
-ctx.fill();
+var city = cityFromPixel(cityLoc[0],cityLoc[1]);
+console.log(city);
 }
 }
 function getMousePos(canvas, evt) {
@@ -521,6 +517,33 @@ var CIRLCERAD = 10;
 }
 return null;
 
+}
+
+//returns the three hexes which touch the city located at the given pixel location
+
+function cityFromPixel(x,y){
+//gets the closest hex to the location
+var axials = pixelToHex(x,y);
+if(axials==null){ return null; }
+var matrixLocs = axialToMatrix(axials[0],axials[1]);
+var h = board[matrixLocs[1]][matrixLocs[0]];
+
+//gets a list of the neighbors
+var neigh = neighbors(h.id);
+
+
+//distance the city is from all the neighbors
+var dists = {};
+for(var i = 0;i<neigh.length;i+=1){
+var n = hexToPixel(findHex(neigh[i]));
+dists[neigh[i]] = Math.sqrt(Math.pow(x-n[0],2)+Math.pow(y-n[1],2));
+}
+//pick two lowest distances
+var sortedDistances = Object.keys(dists).sort(function(a,b){return dists[a]-dists[b]})
+var solution = [sortedDistances[0],sortedDistances[1],h.id]
+//alphabitizes the hexes, returns the list
+
+return solution.sort();
 }
 </script>
 
