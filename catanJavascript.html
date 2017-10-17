@@ -193,7 +193,6 @@ return [x,y];
 }
 //given pixel coordinates x,y, returns the axial coordinates of the hexagon. returns null if you did not click on a valid hexagon
 function pixelToHex(x,y){
-
 	var x_0 = 4*myGameArea.hexSize;
 	var y_0 = myGameArea.canvas.height/2;
 	var size = myGameArea.hexSize;
@@ -210,11 +209,9 @@ function pixelToHex(x,y){
     var rx = Math.round(xf);
     var ry = Math.round(yf);
     var rz = Math.round(zf);
-
     var x_diff = Math.abs(rx - xf);
     var y_diff = Math.abs(ry - yf);
     var z_diff = Math.abs(rz - zf);
-
     if (x_diff > y_diff && x_diff > z_diff){
         rx = -ry-rz; }
     else if(y_diff > z_diff){
@@ -287,7 +284,6 @@ for(var i = 0;i<board.length;i+=1){
 }
 return null;
 }
-
 //returns the hex object given it's axial coords
 function hexFromAx(x,y){
 for(var i = 0;i<board.length;i+=1){
@@ -343,6 +339,7 @@ function drawSettlement(hexIDa,hexIDb,hexIDc){
 [x,y] = vertexBetween(hexIDa,hexIDb,hexIDc);
 var ctx = myGameArea.context;
 ctx.beginPath();
+ctx.strokeStyle = "black";
 ctx.arc(x,y,10,0,2*Math.PI);
 ctx.stroke();
 }
@@ -350,18 +347,25 @@ function drawCity(hexIDa,hexIDb,hexIDc){
 [x,y] = vertexBetween(hexIDa,hexIDb,hexIDc);
 var ctx = myGameArea.context;
 ctx.beginPath();
+ctx.fillStyle = "black";
 ctx.arc(x,y,10,0,2*Math.PI);
 ctx.fill();
 }
 myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
 function myMouseDown(evt){
-
 var mousePos = getMousePos(myGameArea.canvas,evt);
 [xa,ya] = pixelToHex(mousePos.x,mousePos.y);
 var h = hexFromAx(xa,ya);
 if(h!=null){
-highlightHex(hexFromAx(xa,ya).id);
+var verts = hexVertices(h);
+for(var i = 0;i<verts.length;i+=1){
+ctx = myGameArea.context;
+ctx.beginPath();
+ctx.fillStyle = "black";
+ctx.arc(verts[i][0],verts[i][1],10,0,2*Math.PI);
+ctx.fill();
+}
 }
 }
 function getMousePos(canvas, evt) {
@@ -398,19 +402,15 @@ var mousePos = getMousePos(myGameArea.canvas,evt);
 [xa,ya] = pixelToHex(mousePos.x,mousePos.y);
 return hexFromAx(xa,ya);
 }
-
 //returns the id of the city/settlement if the pixel location is overlapping a city or settlement, null if otherwise
 function overCitySettlement(){
-
 }
-
 //returns the id of the road if the pixel location is overlapping a road
 //returns null otherwise
 function overRoad(evt){
 var h = overHex(evt);
 if(h == null){return;}
 var mousePos = getMousePos(myGameArea.canvas,evt);
-
 var neigh = neighbors(h.id);
 for(var i = 0;i<neigh.length;i++){
 [x1,y1,x2,y2] = roadBoundry(h.id,neigh[i]);
@@ -420,13 +420,9 @@ drawLineAsRect(lineRect, "transparent");
             if (myGameArea.context.isPointInPath(mousePos.x, mousePos.y)) {
              return[h.id,neigh[i]];
 }
-
-
 }
 return null;
 }
-
-
 function highlightHex(hex) {
 drawBaseBoard();
 if(hex == null){ return;}
@@ -457,7 +453,6 @@ if(hex == null){ return;}
     ctx.fillStyle="black";
     ctx.fill();
 }
-
 function drawLineAsRect(lineAsRect, color) {
             var r = lineAsRect;
             ctx = myGameArea.context;
@@ -474,14 +469,11 @@ function drawLineAsRect(lineAsRect, color) {
             ctx.stroke();
             ctx.restore();
         }
-
-
 function defineLineAsRect(x1, y1, x2, y2, lineWidth) {
             var dx = x2 - x1; // deltaX used in length and angle calculations 
             var dy = y2 - y1; // deltaY used in length and angle calculations
             var lineLength = Math.sqrt(dx * dx + dy * dy);
             var lineRadianAngle = Math.atan2(dy, dx);
-
             return ({
                 translateX: x1,
                 translateY: y1,
@@ -492,7 +484,18 @@ function defineLineAsRect(x1, y1, x2, y2, lineWidth) {
                 rectHeight: lineWidth
             });
             }
-
+            
+//returns an array of the x,y pixel locations of the verticies touching the hex
+function hexVertices(h){
+var s = myGameArea.hexSize;
+[xc,yc] = hexToPixel(h);
+var vertices = [];
+var v = [[0,1],[Math.sqrt(3)/2,.5],[-Math.sqrt(3)/2,.5],[0,-1],[-Math.sqrt(3)/2,-.5],[Math.sqrt(3)/2,-.5]];
+for(var i = 0;i<6;i+=1){
+vertices.push([xc+v[i][0]*s,yc+v[i][1]*s]);
+}
+return vertices;
+}
 </script>
 
 <p>Catan!</p>
