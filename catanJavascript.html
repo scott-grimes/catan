@@ -354,18 +354,14 @@ ctx.fill();
 myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
 function myMouseDown(evt){
-var mousePos = getMousePos(myGameArea.canvas,evt);
-[xa,ya] = pixelToHex(mousePos.x,mousePos.y);
-var h = hexFromAx(xa,ya);
-if(h!=null){
-var verts = hexVertices(h);
-for(var i = 0;i<verts.length;i+=1){
-ctx = myGameArea.context;
+var cityLoc = overCitySettlement(evt);
+console.log(cityLoc);
+if(cityLoc!=null){
+	var ctx = myGameArea.context;
 ctx.beginPath();
 ctx.fillStyle = "black";
-ctx.arc(verts[i][0],verts[i][1],10,0,2*Math.PI);
+ctx.arc(cityLoc[0],cityLoc[1],10,0,2*Math.PI);
 ctx.fill();
-}
 }
 }
 function getMousePos(canvas, evt) {
@@ -384,7 +380,18 @@ drawRoad(r[0],r[1]);
 else{
 var h = overHex(evt)
 if(h!=null){
+
+var cityLoc = overCitySettlement(evt);
+if(cityLoc!=null){
+	var ctx = myGameArea.context;
+ctx.beginPath();
+ctx.fillStyle = "black";
+ctx.arc(cityLoc[0],cityLoc[1],10,0,2*Math.PI);
+ctx.fill();
+}
+else{
 highlightHex(h);
+}
 }
 }
 }
@@ -402,9 +409,7 @@ var mousePos = getMousePos(myGameArea.canvas,evt);
 [xa,ya] = pixelToHex(mousePos.x,mousePos.y);
 return hexFromAx(xa,ya);
 }
-//returns the id of the city/settlement if the pixel location is overlapping a city or settlement, null if otherwise
-function overCitySettlement(){
-}
+
 //returns the id of the road if the pixel location is overlapping a road
 //returns null otherwise
 function overRoad(evt){
@@ -495,6 +500,27 @@ for(var i = 0;i<6;i+=1){
 vertices.push([xc+v[i][0]*s,yc+v[i][1]*s]);
 }
 return vertices;
+}
+
+//returns the id of the city/settlement if the pixel location is overlapping a city or settlement, null if otherwise
+function overCitySettlement(evt){
+var h = overHex(evt);
+if(h == null){return;}
+var mousePos = getMousePos(myGameArea.canvas,evt);
+var verts = hexVertices(h);
+for(var i = 0;i<verts.length;i++){
+var CIRLCERAD = 10;
+	// test if hit in the circle of radius 20
+    
+    
+    
+    var dist = Math.sqrt(Math.pow(mousePos.x-verts[i][0],2)+Math.pow( mousePos.y-verts[i][1],2));
+            if (dist<CIRLCERAD) {
+             return [ verts[i][0] , verts[i][1] ] ;
+}
+}
+return null;
+
 }
 </script>
 
