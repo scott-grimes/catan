@@ -297,16 +297,18 @@ return null;
 }
 //returns an array with all the id's of the neighbor of the given hex
 function neighbors(hexID){
+var answer = [];
 var axial_directions = [[1,  0], [1, -1], [ 0, -1],[-1,  0], [-1, 1], [ 0, 1]];
 var h = findHex(hexID);
 var x0 = h.x;
 var y0 = h.y;
-var answer = [];
 for(var i=0;i<6;i++){
 var xa = x0+axial_directions[i][0];
 var ya = y0+axial_directions[i][1];
 [x,y] = axialToMatrix(xa,ya);
+if(x != null && y!= null && x<board[0].length && y<board.length && board[y][x].id!= null){
 answer.push(board[y][x].id);
+}
 }
 return answer;
 }
@@ -366,9 +368,11 @@ function myMouseMove(evt){
 
 var mousePos = getMousePos(myGameArea.canvas,evt);
 [xa,ya] = pixelToHex(mousePos.x,mousePos.y);
-var nearestHex = 
-highlightHex(hexFromAx(xa,ya));
-/*
+var nearestHex = hexFromAx(xa,ya);
+overRoad(evt);
+highlightHex(nearestHex);
+
+}
 function writeMessage(canvas, message) {
         var context = canvas.getContext('2d');
         context.clearRect(0, 0, 100, 30);
@@ -376,9 +380,6 @@ function writeMessage(canvas, message) {
         context.fillStyle = 'black';
         context.fillText(message, 10, 25);
       }
-*/
-}
-
 
 //returns the id of the city/settlement if the pixel location is overlapping a city or settlement, null if otherwise
 function overCitySettlement(){
@@ -387,17 +388,29 @@ function overCitySettlement(){
 
 //returns the id of the road if the pixel location is overlapping a road
 //returns null otherwise
-function overRoad(){
+function overRoad(evt){
+var mousePos = getMousePos(myGameArea.canvas,evt);
+[xa,ya] = pixelToHex(mousePos.x,mousePos.y);
+var nearestHex = hexFromAx(xa,ya);
+if(nearestHex == null){return;}
 
+var neigh = neighbors(nearestHex.id);
+for(var i = 0;i<neigh.length;i++){
+[x1,y1,x2,y2] = roadBoundry(nearestHex.id,neigh[i]);
+var lineRect = defineLineAsRect(x1, y1, x2, y2, 20);
+	// test if hit in the lineRect
+            if (myGameArea.context.isPointInPath(mousePos.x, mousePos.y)) {
+             drawRoad(nearestHex.id,neighbors[i]);
 }
 
-function highlightRoad(){
 
+}
 }
 
 
 function highlightHex(hex) {
 drawBaseBoard();
+if(hex == null){ return;}
     //center of gameboard at x_0, y_0
 	x_0 = myGameArea.canvas.width/2;
 	y_0 = myGameArea.canvas.height/2;
@@ -427,6 +440,41 @@ drawBaseBoard();
    
     
 }
+
+function drawLineAsRect(lineAsRect, color) {
+            var r = lineAsRect;
+            ctx = myGameArea.context;
+            ctx.save();
+            ctx.beginPath();
+            ctx.translate(r.translateX, r.translateY);
+            ctx.rotate(r.rotation);
+            ctx.rect(r.rectX, r.rectY, r.rectWidth, r.rectHeight);
+            ctx.translate(-r.translateX, -r.translateY);
+            ctx.rotate(-r.rotation);
+            ctx.fillStyle = color;
+            ctx.strokeStyle = color;
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+
+function defineLineAsRect(x1, y1, x2, y2, lineWidth) {
+            var dx = x2 - x1; // deltaX used in length and angle calculations 
+            var dy = y2 - y1; // deltaY used in length and angle calculations
+            var lineLength = Math.sqrt(dx * dx + dy * dy);
+            var lineRadianAngle = Math.atan2(dy, dx);
+
+            return ({
+                translateX: x1,
+                translateY: y1,
+                rotation: lineRadianAngle,
+                rectX: 0,
+                rectY: -lineWidth / 2,
+                rectWidth: lineLength,
+                rectHeight: lineWidth
+            });
+            }
 
 </script>
 
