@@ -12,7 +12,6 @@ canvas {
 <body onload="startGame()">
 <script>
 var tileColor = {"ocean":"HoneyDew", "pasture": "white", "field" : "Khaki","mountains": "grey","hills": "LightSalmon","desert":"yellow","forest":"OliveDrab","port":"HoneyDew"};
-
 function startGame() {
     myGameArea.start();
     drawBoard();
@@ -34,14 +33,12 @@ var myGameArea = {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 }
-
 function drawBoard(){
 myGameArea.clear()
 for(var key in myGameArea.hex){
 DrawHex(myGameArea.hex[key]);
 }
 }
-
 function Hex(id,x,y,type,tileVal){
     this.id = id;
     this.x = x;
@@ -175,7 +172,6 @@ function shuffle(array) {
   }
   return array;
 }
-
 //returns the hex object given the x and y axial coords of the hex. returns null if no hex is found
 function hexFromAx(x,y){
 for(var key in myGameArea.hex){
@@ -186,8 +182,6 @@ return h;
 }
 return null;
 }
-
-
 //given pixel coordinates x,y, returns the hex object which contains the point (x,y). returns null if you did not click on a valid hexagon
 function pixelToHex(x,y){
 	var x_0 = 4*myGameArea.hexSize;
@@ -219,7 +213,6 @@ function pixelToHex(x,y){
     
 return hexFromAx(rx,rz);
 }
-
 function drawLine(x1, y1, x2, y2, lineWidth, color, ctx) {
             ctx.fillStyle = color;
             ctx.strokeStyle = color;
@@ -238,7 +231,6 @@ var size = myGameArea.hexSize;
 //x_a,y_a are the axial coordinates of the hex
     var x_a = hex.x;
     var y_a = hex.y;
-    
     //x,y are pixel coords of the center of the hexagon
     var x = x_0+size*(x_a+y_a/2)*Math.sqrt(3);
     var y = y_0+y_a*size*1.5;
@@ -257,7 +249,6 @@ else{
 top = hex2;
 bottom = hex1;
 }
-
 [xa1,ya1] = hexToPixel(top);
 [xa2,ya2] = hexToPixel(bottom);
 var dx = (xa2-xa1);
@@ -284,7 +275,6 @@ var h = myGameArea.hex[id]
 if(h!=null){ return h;}
 return null;
 }
-
 //returns an array with all the id's of the neighbor of the given hex id
 function neighbors(h){
 var answer = [];
@@ -295,7 +285,6 @@ for(var i=0;i<6;i++){
 var xa = x0+axial_directions[i][0];
 var ya = y0+axial_directions[i][1];
 if(hexFromAx(xa,ya)!=null){
-
 answer.push(hexFromAx(xa,ya).id);
 }
 }
@@ -306,11 +295,11 @@ function drawRoad(hex1,hex2){
 var bounds = roadBoundry(hex1,hex2);
 drawLine(bounds[0],bounds[1],bounds[2],bounds[3],8,"black",myGameArea.context);
 }
-//returns the coordinates of vertex between the three given hexagons
-function vertexBetween(a, b, c){
-var ids = [a,b,c];
+//returns the coordinates of vertex between the three given hexagon ID's
+function vertexBetween(idArray){
+var ids = idArray.sort();
 var h = myGameArea.hex;
-ids.sort();
+
 [xa,ya] = hexToPixel(h[ids[0]]);
 [x1,y1] = hexToPixel(h[ids[1]]);
 [x2,y2] = hexToPixel(h[ids[2]]);
@@ -324,10 +313,9 @@ dy = dy/dist;
 var size = myGameArea.hexSize;
 return [xa+dx*size,ya+dy*size];
 }
-
 function drawSettlement(a,b,c){
 var h = myGameArea.hex;
-[x,y] = vertexBetween(h[a],h[b],h[c]);
+[x,y] = vertexBetween(a,b,c);
 var ctx = myGameArea.context;
 ctx.beginPath();
 ctx.strokeStyle = "black";
@@ -336,17 +324,15 @@ ctx.stroke();
 }
 function drawCity(a,b,c){
 var h = myGameArea.hex;
-[x,y] = vertexBetween(h[a],h[b],h[c]);
+[x,y] = vertexBetween(a,b,c);
 var ctx = myGameArea.context;
 ctx.beginPath();
 ctx.fillStyle = "black";
 ctx.arc(x,y,10,0,2*Math.PI);
 ctx.fill();
 }
-
 myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
-
 function myMouseDown(evt){
 drawBoard();
 var r = overRoad(evt);
@@ -528,7 +514,6 @@ function cityFromPixel(x,y){
 //gets the closest hex to the location
 var h = pixelToHex(x,y);
 if(h==null){ return null; }
-
 //gets a list of the neighbors
 var neigh = neighbors(h);
 //distance the city is from all the neighbors
