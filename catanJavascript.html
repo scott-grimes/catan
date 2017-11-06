@@ -38,6 +38,17 @@ myGameArea.clear()
 for(var key in myGameArea.hex){
 DrawHex(myGameArea.hex[key]);
 }
+
+for(var key in myGameArea.roads){
+drawRoad(myGameArea.hex[key[0]],myGameArea.hex[key[1]]);
+}
+
+for(var key in myGameArea.vertices){
+
+console.log(key);
+}
+
+
 }
 function Hex(id,x,y,type,tileVal){
     this.id = id;
@@ -331,20 +342,38 @@ ctx.fillStyle = "black";
 ctx.arc(x,y,10,0,2*Math.PI);
 ctx.fill();
 }
+
+
 myGameArea.canvas.addEventListener("mousedown", myMouseDown);
 myGameArea.canvas.addEventListener("mousemove", myMouseMove);
+
+function addRoad(h1, h2, player){
+ids = [h1.id,h2.id];
+ids.sort();
+id = ids[0]+ids[1];
+if (myGameArea.roads[id]){ 
+console.log("already added");
+}
+else{
+myGameArea.roads[id] = player;
+}
+return;
+}
+
+
+
 function myMouseDown(evt){
 drawBoard();
 var r = overRoad(evt);
-console.log(r)
 if(r!=null){
+addRoad(r[0],r[1],"player");
 drawRoad(r[0],r[1]);
+
 }
 else{
 var h = overHex(evt)
 if(h!=null){
 var cityLoc = overCitySettlement(evt);
-console.log(cityLoc);
 if(cityLoc!=null){
 	var ctx = myGameArea.context;
 ctx.beginPath();
@@ -527,6 +556,20 @@ var sortedDistances = Object.keys(dists).sort(function(a,b){return dists[a]-dist
 var solution = [sortedDistances[0],sortedDistances[1],h.id]
 //alphabitizes the hexes, returns the list
 return solution.sort();
+}
+
+//given an array of 3 IDS, add a settlement there for player
+function addSettlement(ids,player){
+ids.sort();
+id = ids[0]+ids[1]+ids[2];
+if (myGameArea.vertices[id]){ 
+console.log("already added");
+}
+else{
+myGameArea.vertices[id] = {player: player, type: "settlement"};
+}
+return;
+
 }
 </script>
 
