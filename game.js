@@ -68,11 +68,6 @@ var GenerateBoard = function(){
 	return hexes;
 }
 
-Player.prototype.addPort = function(){};
-Player.prototype.addSettlement = function(){};
-Player.prototype.upgradeSettlement = function(){};
-Player.prototype.addRoad = function(){};
-
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
   // While there remain elements to shuffle...
@@ -91,22 +86,23 @@ function shuffle(array) {
 // our game logic
 //accepts an array of player names
 function Server(pNames){
-	this.hexes = GenerateBoard();
-	this.players = {}; 
-	this.roads = {};
-	this.towns = {};
-	this.trades = {};
+	var gameState = new GameState();
+
+	var hexes = GenerateBoard();
+	gameState.hexes = hexes;
+
+	var playerNames = [];
 
 	for(var i = 0;i<pNames.length;i++){ 
-		this.players[i] = new Player(i);
+		playerNames[i] = new Player(i);
 	}
+	gameState.players = playerNames;
 
-	this.getBoardHexes = ()=>{return this.hexes;}
+	this.getBoardHexes = ()=>{return gameState.hexes;}
 
 	 //all public-ly available info
 	 this.getBoardState = function(){
 	 	var state = {};
-
 	 	return state;
 	 }
 
@@ -119,9 +115,5 @@ function Server(pNames){
 	 this.getPublicAttrOfPerson = function(id){
 
 	 }
-}
-
-//allows interaction with the visual game
-function GameBoard(hexes){
 
 }

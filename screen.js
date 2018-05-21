@@ -1,5 +1,5 @@
 var tileColor = {"ocean":"HoneyDew", "pasture": "lightgreen", "field" : "Khaki","mountains": "grey","hills": "LightSalmon","desert":"yellow","forest":"OliveDrab","port":"HoneyDew"};
-
+var listOfTowns = [];
 function getPlayerID(){
     return playerID;
 }
@@ -13,7 +13,7 @@ var createSVGElement = function(tagName) {
 var roadHandler = function(evt){
     var $road = $(this);
 
-    if($road.data('owner') !== '') return;
+    if($road.data('owner') !== 'none') return;
 
     if(evt.type === 'mouseenter'){
         $road.attr('stroke-opacity',1);
@@ -32,7 +32,7 @@ var roadHandler = function(evt){
 var townHandler = function(evt){
     var $town = $(this);
 
-    if($town.data('owner') !== '') return;
+    if($town.data('owner') !== 'none') return;
 
     if(evt.type === 'mouseenter'){
         $town.attr('opacity',1);
@@ -153,7 +153,6 @@ var hexToPixel = function(hex){
     var y = y_0+y_a*size*1.5;
     return [x,y]
 }
-
 //returns the hex id given the x and y axial coords of the hex. returns null if no hex is found
 var hexFromAx = function(x,y){
     for(var key in hexes){
@@ -198,7 +197,6 @@ var pixelToHex = function(x,y){
 //returns an array with all the id's of the neighbor of the given hex id
 var neighbors = function(id){
     var h = hexes[id];
-
     var answer = [];
     var axial_directions = [[1,  0], [1, -1], [ 0, -1],[-1,  0], [-1, 1], [ 0, 1]];
     var x0 = h.x;
@@ -247,7 +245,6 @@ var roadBoundry = function(id1, id2){
     var y2 = ya1+size*(dx*s+c*dy);
     return [x1,y1,x2,y2];
 }
-
 //fills our gameboard with road objects
 var BuildRoads = function(hData){
     if(hData.type === 'ocean' || hData.type === 'port') return;
@@ -257,6 +254,10 @@ var BuildRoads = function(hData){
     for(var i = 0;i<adjHexes.length;i++){
 
         var coords = roadBoundry(hData.id, adjHexes[i]);
+        var roadID = [hData.id,adjHexes[i]];
+        roadID = roadID.sort();
+        roadID = roadID.join('_');
+
         var $road = createSVGElement('line')
         .attr('stroke',playerColors[getPlayerID()])
         .attr('stroke-opacity',0)
@@ -266,14 +267,13 @@ var BuildRoads = function(hData){
         .attr('y1',coords[1])
         .attr('x2',coords[2])
         .attr('y2',coords[3])
-        .attr('id',hData.id+adjHexes[i])
-        .data('owner','')
+        .attr('id',roadID)
+        .data('owner','none')
         .addClass('road');
-        
+
         $board.append($road)
     }
 }
-
 //returns the three hexes which touch the city located at the given coord location
 var cityFromPixel = function(coord){
     var x = coord[0];
@@ -296,17 +296,6 @@ var cityFromPixel = function(coord){
     return solution.sort();
 }
 
-// generates all possible two-element combos of the array
-var pick2of = function(arr){
-    var sol = [];
-    for(var i = 0;i<arr.length-1;i++){
-        for(var j = i+1;j<arr.length;j++){
-            sol.push( [arr[j],arr[i]]);
-        }
-    }
-    return sol;
-}
-
 //returns the ID's of the towns which touch the given hex
 var getTownsOnHex = function(hData){
     var nHexes = neighbors(hData.id);
@@ -325,7 +314,6 @@ var getTownsOnHex = function(hData){
     }
     return townIDs;
 }
-
 //returns true if two hex ID's are neighbors
 var areNeighbors = function(a,b){
     var n1 = neighbors(a);
@@ -367,6 +355,7 @@ var centerOfThreePoints = function(arr){
 }
 
 var BuildTown = function(id){
+    listOfTowns.push(id);
     var onHexes = id.split('_');
     var $town = createSVGElement('circle');
 
@@ -384,10 +373,11 @@ var BuildTown = function(id){
     .attr('r',10)
     .attr('fill',playerColors[getPlayerID()])
     .attr('opacity',0)
-    .data('owner','')
+    .data('owner','none')
+    .attr('id',id)
     .addClass('town');
 
-    $board.append($town)
+    $board.append($town);
 
 }
 
@@ -395,26 +385,29 @@ var BuildTowns = function(hData){
     
     var townsAroundHex = getTownsOnHex(hData)
     for(var i = 0;i<townsAroundHex.length;i++){
-        BuildTown( townsAroundHex[i])
+        if(!listOfTowns.includes( townsAroundHex[i]))
+            BuildTown( townsAroundHex[i]);
+
     }
+
     return;
 }
+
+
  
     for(var key in hexes){
         BuildHex(hexes[key]);
         BuildRoads(hexes[key]);
+    }
+    for(var key in hexes){
+
         BuildTowns(hexes[key]);
     }
+
     
 
 $('.road').on('mouseenter mouseleave click',roadHandler);
 $('.town').on('mouseenter mouseleave click',townHandler);
-
-
-
-
-
-
 
 
 };
