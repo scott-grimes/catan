@@ -99,9 +99,9 @@ function Server(pNames){
 	gameState.players = playerNames;
 
 	this.getBoardHexes = ()=>{return gameState.hexes;}
-
+	
 	 //all public-ly available info
-	 this.getBoardState = function(){
+	 this.getPublicState = function(){
 	 	var state = {};
 	 	return state;
 	 }
@@ -111,9 +111,7 @@ function Server(pNames){
 
 	 }
 
-	 //get the public attributes of a person (visible cards, known VP, etc)
-	 this.getPublicAttrOfPerson = function(id){
-
-	 }
+	 
+	 
 
 }

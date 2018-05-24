@@ -60,7 +60,7 @@ function GameWindow(){
     var hexSize = 36;
 
     var hexes = Catan.getBoardHexes();
-    var boardState = Catan.getBoardState();
+    //var boardState = Catan.getBoardState();
     var roads = {};
     var vertices = {};
 
@@ -118,11 +118,6 @@ var BuildHex = function(hData) {
         .attr('y',y)
         .text(hData.tileVal)
         .css('pointer-events', 'none');
-        /*
-        if(hData.tileVal===7){
-            $numTile.text('robber')
-            tileVal = 'robber';
-        }
 
         $Hex.on('mouseenter',()=>{
 
@@ -130,7 +125,7 @@ var BuildHex = function(hData) {
     });
     $Hex.on('mouseleave',()=>{
             $numTile.text( $Hex.data('val') )
-    });*/
+    });
     }
 
     
@@ -394,6 +389,27 @@ var BuildTowns = function(hData){
 }
 
 
+// invoked by server when a player builds a road
+var setRoad = function(roadID,playerID){
+    $('#'+roadID)
+    .data('owner',playerID)
+    .attr('stroke',playerColors[playerID])
+    .on('mouseenter mouseleave click',()=>{});
+}
+
+// invoked by server when a player builds a road
+var setSettlement = function(settlementID,playerID){
+    $('#'+settlementID)
+    .data('owner',playerID)
+    .attr('fill',playerColors[playerID])
+    .attr('opacity',1)
+    .on('mouseenter mouseleave click',()=>{});
+
+}
+
+
+
+
  
     for(var key in hexes){
         BuildHex(hexes[key]);
@@ -403,8 +419,6 @@ var BuildTowns = function(hData){
 
         BuildTowns(hexes[key]);
     }
-
-    
 
 $('.road').on('mouseenter mouseleave click',roadHandler);
 $('.town').on('mouseenter mouseleave click',townHandler);

@@ -9,6 +9,12 @@ function GameState(){
     this.trades = {};
 }
 
+// {card:count, card:count} for both resources and wanted
+function Trade(resources,wanted){
+    this.resouces = resources;
+    this.wanted = wanted;
+}
+
 function Hex(id,x,y,type,tileVal){
     this.id = id;
     this.x = x;
@@ -31,18 +37,77 @@ function Town(id,owner,type){
 function Player(id,name){
     this.id = id;
     this.name = name;
-    this.color = playerColors[id];
+    this.ports = [];
+    this.roads = [];
+    this.settlements = [];
+    this.cities = [];
+    this.resourceCards = {'wool':0, 'brick':0, 'rock':0, 'wood':0, 'wheat':0};
+    this.vpCards = [];
+    this.publicCards = [];
+    this.VP = 0;
+    this.publicVP = 0;
+    this.trades = [];
 }
 
-Player.prototype.addPort = function(){};
-Player.prototype.addSettlement = function(){};
-Player.prototype.upgradeSettlement = function(){};
-Player.prototype.addRoad = function(){};
+Player.prototype.addPort = function(loc){
+    this.ports.push(loc);
+};
+Player.prototype.addSettlement = function(loc){
+    this.settlements.push(loc);
+};
+Player.prototype.upgradeSettlement = function(loc){
+    var ind = this.settlements.indexOf(loc);
+    this.settlements.remove(ind);
+    this.cities.push(loc);
+};
+Player.prototype.addRoad = function(loc){
+    this.roads.push(loc);
+};
+
+Player.addTrade = function(resources,wanted){
+    var temp = new Trade(resouces,wanted);
+    this.trades.push(temp);
+}
+
+Player.prototype.getPublicInfo = function(){
+    var pstate = {};
+    pstate['ports'] = this.ports;
+    pstate['roads'] = this.roads;
+    pstate['settlements'] = this.settlements;
+    pstate['cities'] = this.cities;
+    pstate['publicCards'] = this.publicCards;
+    pstate['publiVP'] = this.publicVP;
+    pstate['resourceCards'] = this.resourceCards.length;
+    pstate['vpCards'] = this.vpCards.length;
+    return pState;
+}
+
+Player.prototype.resouceCardLength = function(){
+    return Object.keys(this.resouceCards).reduce((memo,x)=>{return memo+this.resouceCards[x];},0);
+    
+}
+Player.prototype.vpCardLength = function(){
+    return Object.keys(this.vpCards).reduce((memo,x)=>{return memo+this.resouceCards[x];},0);
+    
+}
+
+// removes one random card from the players hand. returns the card
+Player.prototype.stealFrom = function(){
+    var has = [];
+    for(var key in this.resouceCards){
+        if(!has.indexOf( this.resouceCards[key] )){
+            has.push( key );
+        }
+    }
+    var rand = Math.floor( Math.random()*has.length );
+    var key = has[rand];
+    this.resouceCards[key]--;
+    return key;
+}
 
 //returns a list of the towns adjacent to the given townID
 function getTownsAdjacentToTown(townID){
 var threeHexes = townID.split('_');
-
 
     var adjacentTowns = [];
     for(var i = 0;i<townIDs.length;i++){
@@ -61,19 +126,30 @@ var threeHexes = townID.split('_');
 // returns true if the given town ID has another town next to it
 function townTooClose(townID){
     var adjacentTowns = getTownsAdjacentToTown(townID);
+    if(adjacentTowns.length>0){
+        return true;
+    }
+    return false;
+}
 
-    for(var i = 0;i<adjacentTowns.length;i++){
+// returns true if the given player has 2 or more roads touching the town
+function multiRoadsOnTown(townID,playerID){
+    var roadIDs = pick2of( townID.split('_') );
+    var roadCount = 0;
+    for(var i = 0;i<roadIDs.length;i++){
+        var tempRoadId = roadIDs[i].join('_');
         
     }
-
-
 }
+
 // generates all possible two-element combos of the array
 function pick2of(arr){
     var sol = [];
     for(var i = 0;i<arr.length-1;i++){
         for(var j = i+1;j<arr.length;j++){
-            sol.push( [arr[j],arr[i]]);
+            var temp = [arr[j],arr[i]];
+            temp = temp.sort()
+            sol.push( temp );
         }
     }
     return sol;
